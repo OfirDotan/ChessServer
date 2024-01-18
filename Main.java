@@ -15,6 +15,7 @@ public class Main {
    public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException {
       connectToSQL();
       ServerSocket serverSocket = new ServerSocket(8452);
+      serverSocket.bind(new InetSocketAddress("0.0.0.0", 8452));  // Bind to all available IPv4 addresses
       System.out.println("Server Online.");
 
       while(true) {
