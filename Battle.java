@@ -41,11 +41,10 @@ public class Battle implements Runnable {
             }
             System.out.println("White sent: " + message);
 
-            if (message.equals("Battle Over")){
+            writeMessage(2, message);
+            if (message.equals("Abandoned")){
                 break;
             }
-
-            writeMessage(2, message);
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
@@ -60,6 +59,9 @@ public class Battle implements Runnable {
             System.out.println("Black sent: " + message);
 
             writeMessage(1, message);
+            if (message.equals("Abandoned")){
+                break;
+            }
         }
     }
     public void writeMessage(int socketNumber, String message){
