@@ -160,7 +160,7 @@ public class UserConnection implements Runnable {
             if (initiatorAccepted && receiverAccepted) {
                 Battle battle = null;
                 try {
-                    battle = new Battle(chessSocket, username, otherChessSocket, otherUsername);
+                    battle = new Battle(chessSocket, username, otherChessSocket, otherUsername, connection);
                 } catch (SocketException e) {
                     throw new RuntimeException(e);
                 }

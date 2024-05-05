@@ -2,6 +2,9 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Random;
 
 public class Battle implements Runnable {
@@ -9,8 +12,10 @@ public class Battle implements Runnable {
     private String whiteUsername;
     private final Socket blackSocket;
     private String blackUsername;
-    public Battle(Socket socket1, String username1, Socket socket2, String username2) throws SocketException {
+    private Connection databaseCon;
+    public Battle(Socket socket1, String username1, Socket socket2, String username2, Connection databaseCon) throws SocketException {
         Random rand = new Random();
+        this.databaseCon = databaseCon;
         //0 - White, 1 - Black
         int startingColor = rand.nextInt(1);
         socket1.setSoTimeout(100);
@@ -43,6 +48,13 @@ public class Battle implements Runnable {
 
             writeMessage(2, message);
             if (message.equals("Abandoned")){
+                try {
+                    disconnectUsers();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 break;
             }
             try {
@@ -60,6 +72,13 @@ public class Battle implements Runnable {
 
             writeMessage(1, message);
             if (message.equals("Abandoned")){
+                try {
+                    disconnectUsers();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 break;
             }
         }
@@ -104,5 +123,24 @@ public class Battle implements Runnable {
         System.out.println("BYTES RECEIVED FROM" + socketNumber + " IS " + bytesReceived);
         // Convert the message to a string.
         return new String(message, 0, bytesReceived);
+    }
+    public void disconnectUsers() throws SQLException, IOException {
+        PreparedStatement statement = databaseCon.prepareStatement("UPDATE User SET isConnected = ? WHERE username = ?");
+        statement.setBoolean(1, false); // isConnected
+        System.out.println("Sets " + whiteUsername + " as disconnected");
+        statement.setString(2, whiteUsername); // isConnected
+        statement.executeUpdate();
+        System.out.println("Client " + whiteUsername + " disconnected");
+        Main.allThreads.remove(whiteUsername);
+        Main.socketThread.remove(whiteUsername);
+
+        statement = databaseCon.prepareStatement("UPDATE User SET isConnected = ? WHERE username = ?");
+        statement.setBoolean(1, false); // isConnected
+        System.out.println("Sets " + blackUsername + " as disconnected");
+        statement.setString(2, blackUsername); // isConnected
+        statement.executeUpdate();
+        System.out.println("Client " + blackUsername + " disconnected");
+        Main.allThreads.remove(blackUsername);
+        Main.socketThread.remove(blackUsername);
     }
 }
